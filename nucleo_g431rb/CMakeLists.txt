@@ -1,14 +1,45 @@
 cmake_minimum_required (VERSION 3.7.2)
 
+# Project Setup -------------------------------------------------------------------------------------------------------
 
 project(franklyboot-nucleo-g431rb-bootloader)
 
+# Compiler Setup ------------------------------------------------------------------------------------------------------
+
+# Change compiler path if necessary
+set(COMPILER_PATH "/opt/gcc-arm-11.2-2022.02-x86_64-arm-none-eabi/bin/")
+
+# Compiler Config -----------------------------------------------------------------------------------------------------
+
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-set(CMAKE_SYSTEM_NAME Generic)
+set(CMAKE_SYSTEM_NAME Generic)  # Set system to generic
+set(CMAKE_C_COMPILER   arm-none-eabi-gcc) # Setup C compiler to arm none eabi
+set(CMAKE_CXX_COMPILER arm-none-eabi-g++) # Setup C++ compiler to arm none eabi
 
-set(CMAKE_C_COMPILER   arm-none-eabi-gcc)
-set(CMAKE_CXX_COMPILER arm-none-eabi-g++)
+# Compiler Options ----------------------------------------------------------------------------------------------------
+
+set(CMAKE_C_STANDARD 11)   # Enable C11 standard
+set(CMAKE_CXX_STANDARD 14) # Enable C++14 standard
+
+set(GENERAL_COMPILER_OPTIONS
+    -mcpu=cortex-m4 
+    --specs=nano.specs
+    -mfpu=fpv4-sp-d16 
+    -mfloat-abi=hard 
+    -mthumb
+    -ffunction-sections 
+    -fdata-sections 
+    -Wall 
+    -fstack-usage
+)
+
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${GENERAL_COMPILER_OPTIONS}")
+
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${GENERAL_COMPILER_OPTIONS} -fno-exceptions -fno-rtti -fno-use-cxa-atexit")
+
+
+# Header / Src files --------------------------------------------------------------------------------------------------
 
 set(SRC_CORE
     Core/Src/bootloader_api.cpp
@@ -29,17 +60,6 @@ target_include_directories(${EXECUTABLE} PRIVATE
         Drivers/CMSIS/Device/ST/STM32G4xx/Include
         Drivers/CMSIS/Include
         ../../frankly-bootloader/include/
-)
-
-target_compile_options(${EXECUTABLE} PRIVATE
-    -mcpu=cortex-m4
-    -mthumb
-    -mfpu=fpv4-sp-d16
-    -mfloat-abi=hard
-    -fdata-sections
-    -ffunction-sections
-    -Wall
-    -Og
 )
 
 target_link_options(${EXECUTABLE} PRIVATE
