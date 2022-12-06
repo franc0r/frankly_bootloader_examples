@@ -1,3 +1,4 @@
 build
 .cache
 compile_commands.json
+nucleo_g431rb/build
