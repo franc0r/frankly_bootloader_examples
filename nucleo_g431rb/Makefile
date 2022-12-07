@@ -75,31 +75,29 @@ pre-info:
 
 # Final build step: Link all object files together
 $(BUILD_DIR)/$(PROJECT_NAME): $(OBJS)
-	@echo ""
-	@echo "= Linking Firmware ================================================="
-	@echo "[LD ] $< --> $@"
-	@$(CXX) $(OBJS) -o $@ $(LDFLAGS)
+	@echo "[LD ]: Linking $(notdir $@)"
+	@$(CXX) $(subst ../,,$(OBJS)) -o $@ $(LDFLAGS)
 
 # Create objects from ASM
 $(BUILD_DIR)/%.S.o: %.S
 	$(eval OUT := $(subst ../,,$@))
-	@mkdir -p $(dir $@)
+	@mkdir -p $(dir $(OUT))
 	@echo "[ASM]: $< --> $(OUT)"
-	@$(CC) $(DEF_FLAGS) $(INC_FLAGS) $(CFLAGS) -c $< -o $@
+	@$(CC) $(DEF_FLAGS) $(INC_FLAGS) $(CFLAGS) -c $< -o $(OUT)
 
 # Create objects from C
 $(BUILD_DIR)/%.c.o: %.c
 	$(eval OUT := $(subst ../,,$@))
-	@mkdir -p $(dir $@)
-	@echo "[CC ]: $< --> $(subst ../,,$@)"
-	@$(CC) $(DEF_FLAGS) $(INC_FLAGS) $(CFLAGS) -c $< -o $@
+	@mkdir -p $(dir $(OUT))
+	@echo "[CC ]: $< --> $(OUT)"
+	@$(CC) $(DEF_FLAGS) $(INC_FLAGS) $(CFLAGS) -c $< -o $(OUT)
 
 # Create objects from CPP
 $(BUILD_DIR)/%.cpp.o: %.cpp
 	$(eval OUT := $(subst ../,,$@))
-	@mkdir -p $(dir $@)
-	@echo "[CXX]: $< --> $(subst ../,,$@)"
-	@$(CXX) $(DEF_FLAGS) $(INC_FLAGS) $(CXXFLAGS) -c $< -o $@
+	@mkdir -p $(dir $(OUT))
+	@echo "[CXX]: $< --> $(OUT)"
+	@$(CXX) $(DEF_FLAGS) $(INC_FLAGS) $(CXXFLAGS) -c $< -o $(OUT)
 
 
 .PHONY: clean
@@ -109,8 +107,8 @@ clean:
 .PHONY: size
 size:
 	@echo ""
-	@echo "= Firmware Size ====================================================="
+	@echo "--------------------------------------------------------------------"
 	@$(SIZE) $(BUILD_DIR)/$(PROJECT_NAME)
-	@echo "===================================================================="
+	@echo "--------------------------------------------------------------------"
 
 
