@@ -1,0 +1,22 @@
+name: Build library and run tests
+on:
+  push:
+    branches: [ master, devel ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install ARM GNU Toolchain
+        run: |
+          cd /opt
+          wget https://developer.arm.com/-/media/Files/downloads/gnu/12.2.mpacbti-bet1/binrel/arm-gnu-toolchain-12.2.mpacbti-bet1-x86_64-arm-none-eabi.tar.xz -o tmp.tar.xz
+          tar -xvf tmp.tar.xz 
+          mkdir -p arm-gnu-toolchain 
+          tar -xvf tmp.tar.xz -C ./arm-gnu-toolchain --strip-components=1
+      - uses: actions/checkout@v3
+      - name: Build STM NUCLEO_G491RB Example
+        run: |
+          export PATH=$PATH:/opt/arm-gnu-toolchain/bin
+          cd stm_nucleo_g431rb
+          make
