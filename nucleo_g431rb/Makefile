@@ -10,8 +10,9 @@ PROJECT_NAME := franklyboot_nucleo_g4931rb
 
 # Setup Compiler --------------------------------------------------------------
 
-CC  := arm-none-eabi-gcc
-CXX := arm-none-eabi-g++
+CC   := arm-none-eabi-gcc
+CXX  := arm-none-eabi-g++
+SIZE := arm-none-eabi-size
 
 # Setup C-Version -------------------------------------------------------------
 
@@ -63,34 +64,53 @@ INC_FLAGS := $(addprefix -I./,$(INCLUDE_DIRS))
 OBJS := $(SRCS_FILES:%=$(BUILD_DIR)/%.o)
 
 
-# The final build step.
+all: pre-info $(BUILD_DIR)/$(PROJECT_NAME) size
+	@echo ""
+	@echo "==> Done"
+
+pre-info:
+	@echo "===================================================================="
+	@echo "Building Firmware for $(PROJECT_NAME)"
+	@echo "===================================================================="
+
+# Final build step: Link all object files together
 $(BUILD_DIR)/$(PROJECT_NAME): $(OBJS)
-	@echo "Building firmware for $@"
+	@echo ""
+	@echo "= Linking Firmware ================================================="
+	@echo "[LD ] $< --> $@"
 	@$(CXX) $(OBJS) -o $@ $(LDFLAGS)
 
-# Build asm files
+# Create objects from ASM
 $(BUILD_DIR)/%.S.o: %.S
-	@echo "[ASM] Building $@"
+	$(eval OUT := $(subst ../,,$@))
 	@mkdir -p $(dir $@)
+	@echo "[ASM]: $< --> $(OUT)"
 	@$(CC) $(DEF_FLAGS) $(INC_FLAGS) $(CFLAGS) -c $< -o $@
 
-# Build step for C source
+# Create objects from C
 $(BUILD_DIR)/%.c.o: %.c
-	@echo "[CC ] Building $@"
+	$(eval OUT := $(subst ../,,$@))
 	@mkdir -p $(dir $@)
+	@echo "[CC ]: $< --> $(subst ../,,$@)"
 	@$(CC) $(DEF_FLAGS) $(INC_FLAGS) $(CFLAGS) -c $< -o $@
 
-# Build step for C++ source
+# Create objects from CPP
 $(BUILD_DIR)/%.cpp.o: %.cpp
-	@echo "[C++] Building $@"
+	$(eval OUT := $(subst ../,,$@))
 	@mkdir -p $(dir $@)
+	@echo "[CXX]: $< --> $(subst ../,,$@)"
 	@$(CXX) $(DEF_FLAGS) $(INC_FLAGS) $(CXXFLAGS) -c $< -o $@
+
 
 .PHONY: clean
 clean:
 	@rm -r $(BUILD_DIR)
 
-.PHONY: info
-info:
-	@echo "[INCLUDES]: $(INC_FLAGS)"
-	@echo "[OBJS]: $(OBJS)"
+.PHONY: size
+size:
+	@echo ""
+	@echo "= Firmware Size ====================================================="
+	@$(SIZE) $(BUILD_DIR)/$(PROJECT_NAME)
+	@echo "===================================================================="
+
+
