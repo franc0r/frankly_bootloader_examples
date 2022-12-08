@@ -12,12 +12,10 @@ jobs:
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v3
-      - name: Test Docker container
+      - name: Build STM NUCLEO-G491RB Example
         run: |
-          echo $(pwd)
-          lsb_release -a
-          ls -a
-          arm-none-eabi-gcc -v
+          cd stm_nucleo_g431rb
+          make
 #      - uses: actions/checkout@v3
 #      - name: Build STM NUCLEO_G491RB Example
 #        run: |
