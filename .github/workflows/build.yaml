@@ -16,6 +16,8 @@ jobs:
         run: |
           echo $(pwd)
           lsb_release -a
+          ls -a
+          arm-none-eabi-gcc -v
 #      - uses: actions/checkout@v3
 #      - name: Build STM NUCLEO_G491RB Example
 #        run: |
