@@ -12,6 +12,11 @@ jobs:
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v3
+      - name: Checkout Frankly Bootloader Library
+        run: |
+          mkdir -p ../frankly-bootloader
+          git clone https://github.com/franc0r/frankly-bootloader.git ../frankly-bootloader
+          (cd ../frankly-bootloader && git checkout devel)
       - name: Build STM NUCLEO-G491RB Example
         run: |
           cd stm_nucleo_g431rb
