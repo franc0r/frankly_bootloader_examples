@@ -2,16 +2,19 @@ name: Build library and run tests
 on:
   push:
     branches: [ master, devel ]
-    
+
 jobs:
-  build:
+  ci-pipeline:
     runs-on: ubuntu-latest
     container: bausma/mbed-dev-env:latest
     steps:
-      - uses: actions/checkout@v3
-      - name: Build STM NUCLEO_G491RB Example
+      - name: Test Docker container
         run: |
-          echo $(pwd)
-          ls
-          cd stm_nucleo_g431rb
-          make
+        echo $(pwd)
+#      - uses: actions/checkout@v3
+#      - name: Build STM NUCLEO_G491RB Example
+#        run: |
+#          echo $(pwd)
+#          ls
+#          cd stm_nucleo_g431rb
+#          make
