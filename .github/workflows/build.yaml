@@ -11,11 +11,11 @@ jobs:
       options: --user root
     steps:
       - name: Checkout Repository
-      - uses: actions/checkout@v3
+        uses: actions/checkout@v3
       - name: Test Docker container
         run: |
           echo $(pwd)
-          arm-none-eabi-gcc -v 
+          lsb_release -a
 #      - uses: actions/checkout@v3
 #      - name: Build STM NUCLEO_G491RB Example
 #        run: |
