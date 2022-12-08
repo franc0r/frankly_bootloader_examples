@@ -10,7 +10,7 @@ jobs:
     steps:
       - name: Test Docker container
         run: |
-        echo $(pwd)
+          echo $(pwd)
 #      - uses: actions/checkout@v3
 #      - name: Build STM NUCLEO_G491RB Example
 #        run: |
