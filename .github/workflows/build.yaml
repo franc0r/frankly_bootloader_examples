@@ -6,7 +6,9 @@ on:
 jobs:
   ci-pipeline:
     runs-on: ubuntu-latest
-    container: bausma/mbed-dev-env:latest
+    container: 
+      image: bausma/mbed-dev-env:latest
+      options: --user root
     steps:
       - uses: actions/checkout@v3
       - name: Test Docker container
