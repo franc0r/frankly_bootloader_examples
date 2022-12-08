@@ -10,7 +10,8 @@ jobs:
       image: bausma/mbed-dev-env:latest
       options: --user root
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout Repository
+          uses: actions/checkout@v3
       - name: Test Docker container
         run: |
           echo $(pwd)
