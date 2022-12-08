@@ -8,9 +8,11 @@ jobs:
     runs-on: ubuntu-latest
     container: bausma/mbed-dev-env:latest
     steps:
+      - uses: actions/checkout@v3
       - name: Test Docker container
         run: |
           echo $(pwd)
+          arm-none-eabi-gcc -v 
 #      - uses: actions/checkout@v3
 #      - name: Build STM NUCLEO_G491RB Example
 #        run: |
