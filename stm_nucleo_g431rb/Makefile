@@ -13,12 +13,13 @@ BUILD_DIR = ./build
 
 DEFINES := STM32G431xx
 
-INCLUDE_DIRS  = Core/Inc
+INCLUDE_DIRS := Core/Inc
 INCLUDE_DIRS += Drivers/CMSIS/Device/ST/STM32G4xx/Include
 INCLUDE_DIRS += Drivers/CMSIS/Include
 INCLUDE_DIRS += ../../frankly-bootloader/include
 
-SRCS_FILES = Core/Src/main.c
+SRCS_FILES := Core/Src/main.c
+SRCS_FILES += Core/Src/syscalls.c
 SRCS_FILES += Core/Src/bootloader_api.cpp
 SRCS_FILES += Core/Startup/startup.S
 SRCS_FILES += ../../frankly-bootloader/src/francor/franklyboot/msg.cpp

@@ -13,17 +13,66 @@
 #include "bootloader_api.h"
 #include "stm32g4xx.h"
 
+// Private Functions --------------------------------------------------------------------------------------------------
+
+/** \brief Init core and sys clocks */
+static void initCore(void);
+
+/** \breif Init CRC unit */
+static void initCRC(void);
+
 // Public Functions ---------------------------------------------------------------------------------------------------
 
 void SystemInit(void) {
-
+  initCore();
+  initCRC();
+  FRANKLYBOOT_Init();
 }
 
 int main(void) {
-    for(;;) {
-      __NOP();
-    }
-
-    return 0;
+  FRANKLYBOOT_Run();
+  return 0;
 }
 
+static void initCore(void) {
+  // Enable HSI16 clock
+  RCC->CR = RCC->CR | RCC_CR_HSION;
+
+  // Wait for HSI
+  uint8_t HSI_NOT_RDY = 1;
+  while (HSI_NOT_RDY) {
+    HSI_NOT_RDY = ((RCC->CR & RCC_CR_HSIRDY) != RCC_CR_HSIRDY);
+  }
+
+  // Switch to HSI16
+  RCC->CFGR = RCC->CFGR | RCC_CFGR_SW_HSI;
+
+  // Enable Clocks
+  RCC->AHB1ENR = RCC_AHB1ENR_FLASHEN | RCC_AHB1ENR_CRCEN;
+  RCC->AHB2ENR = RCC_AHB2ENR_GPIOAEN;
+  RCC->APB1ENR2 |= RCC_APB1ENR2_LPUART1EN;
+
+  // Config GPIOs for UART Pin PA2 & PA3
+
+  // Setup alternate function mode
+  uint32_t regValue = GPIOA->MODER;
+  CLEAR_BIT(regValue, (GPIO_MODER_MODE2_Msk | GPIO_MODER_MODE3_Msk));
+  SET_BIT(regValue, (2 << GPIO_MODER_MODE2_Pos) | (2U << GPIO_MODER_MODE3_Pos));
+  GPIOA->MODER = regValue;
+
+  // Setup AF12 mode for UART
+  SET_BIT(GPIOA->AFR[0], (12 << GPIO_AFRL_AFSEL2_Pos));
+  SET_BIT(GPIOA->AFR[0], (12 << GPIO_AFRL_AFSEL3_Pos));
+
+  // Setup UART
+  WRITE_REG(LPUART1->BRR, 0x8AE4);
+  WRITE_REG(LPUART1->CR1, 0xD);
+}
+
+static void initCRC(void) {
+  // Set data input inversion mode to byte
+  MODIFY_REG(CRC->CR, CRC_CR_REV_IN, CRC_CR_REV_IN_0);
+
+  // Set data output inversion
+  MODIFY_REG(CRC->CR, CRC_CR_REV_OUT, CRC_CR_REV_OUT);
+}

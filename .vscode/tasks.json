@@ -4,24 +4,39 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "Build",
+            "label": "Clean",
             "type": "shell",
-            "command": "cmake .. && make && cp compile_commands.json ${workspaceFolder}",
-            "group": {
-                "kind": "build",
-                "isDefault": true
+            "command": "make clean",
+            "options": {
+                "cwd": "stm_nucleo_g431rb"
             },
-            "problemMatcher":"$gcc",
-            "options": {"cwd": "${workspaceFolder}/build"}
+            "problemMatcher": [],
         },
         {
-            "label": "Cleanup",
+            "label": "Build Nucleo-G441RB Example",
             "type": "shell",
-            "command": "rm compile_commands.json; rm -r build/*",
+            "command": "make",
+            "problemMatcher": "$gcc",
             "group": {
                 "kind": "build",
                 "isDefault": false
             },
+            "options": {
+                "cwd": "stm_nucleo_g431rb"
+            }
+        },
+        {
+            "label": "Build compiler data base for clangd",
+            "type": "shell",
+            "command": "compiledb make",
+            "problemMatcher": [],
+            "group": {
+                "kind": "build",
+                "isDefault": false
+            },
+            "options": {
+                "cwd": "stm_nucleo_g431rb"
+            }
         }
     ]
 }
