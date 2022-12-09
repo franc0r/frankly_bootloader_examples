@@ -14,7 +14,7 @@
         },
         {
             "label": "Build Nucleo-G441RB Example",
-            "type": "shell",
+            "type": "process",
             "command": "make",
             "problemMatcher": "$gcc",
             "group": {
@@ -27,7 +27,7 @@
         },
         {
             "label": "Build compiler data base for clangd",
-            "type": "shell",
+            "type": "process",
             "command": "compiledb make",
             "problemMatcher": [],
             "group": {
