@@ -1,0 +1,23 @@
+{
+    "configurations": [
+      {
+        "name": "Linux",
+        "intelliSenseMode": "gcc",
+        "includePath": [
+          "Core/Inc",
+          "Drivers/**"
+        ],
+        "defines": [],
+        "compilerPath": "/usr/bin/clang",
+        "cStandard": "c11",
+        "cppStandard": "c++17",
+        "compileCommands": "${workspaceFolder}/compile_commands.json",
+        "browse": {
+          "path": ["${workspaceFolder}"],
+          "limitSymbolsToIncludedHeaders": true,
+          "databaseFilename": ""
+        }
+      }
+    ],
+    "version": 4
+  }
