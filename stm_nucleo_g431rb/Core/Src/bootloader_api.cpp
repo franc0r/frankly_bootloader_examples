@@ -45,7 +45,7 @@ static void waitForMessage(msg::Msg& request) {
       buffer_idx++;
 
       if (buffer_idx >= buffer.size()) {
-        return;
+        break;
       }
 
       timeout_cnt = 0U;
@@ -64,9 +64,10 @@ static void waitForMessage(msg::Msg& request) {
   }
 
   /* Decode message */
-  const uint16_t rx_request_raw = (static_cast<uint16_t>(buffer[0U]) << 8U) | static_cast<uint16_t>(buffer[1U]);
+  const uint16_t rx_request_raw = static_cast<uint16_t>(buffer[0U]) | static_cast<uint16_t>(buffer[1U] << 8U);
   request.request = static_cast<msg::RequestType>(rx_request_raw);
-  request.packet_id = static_cast<uint8_t>(buffer[2U]);
+  request.response = static_cast<msg::ResponseType>(buffer[2U]);
+  request.packet_id = static_cast<uint8_t>(buffer[3U]);
   request.data[0U] = static_cast<uint8_t>(buffer[4U]);
   request.data[1U] = static_cast<uint8_t>(buffer[5U]);
   request.data[2U] = static_cast<uint8_t>(buffer[6U]);
@@ -80,10 +81,10 @@ static void transmitResponse(const msg::Msg& response) {
   std::array<std::uint8_t, MSG_SIZE> buffer;
 
   /* Encode message */
-  buffer[0U] = static_cast<uint8_t>(response.request >> 8U);
-  buffer[1U] = static_cast<uint8_t>(response.request);
-  buffer[2U] = response.packet_id;
-  buffer[3U] = static_cast<uint8_t>(response.response);
+  buffer[0U] = static_cast<uint8_t>(response.request);
+  buffer[1U] = static_cast<uint8_t>(response.request >> 8U);
+  buffer[2U] = static_cast<uint8_t>(response.response);
+  buffer[3U] = response.packet_id;
 
   buffer[4U] = response.data.at(0);
   buffer[5U] = response.data.at(1);
