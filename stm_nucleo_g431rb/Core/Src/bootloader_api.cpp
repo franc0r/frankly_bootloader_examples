@@ -66,7 +66,7 @@ static void waitForMessage(msg::Msg& request) {
   /* Decode message */
   const uint16_t rx_request_raw = static_cast<uint16_t>(buffer[0U]) | static_cast<uint16_t>(buffer[1U] << 8U);
   request.request = static_cast<msg::RequestType>(rx_request_raw);
-  request.response = static_cast<msg::ResponseType>(buffer[2U]);
+  request.result = static_cast<msg::ResultType>(buffer[2U]);
   request.packet_id = static_cast<uint8_t>(buffer[3U]);
   request.data[0U] = static_cast<uint8_t>(buffer[4U]);
   request.data[1U] = static_cast<uint8_t>(buffer[5U]);
@@ -83,7 +83,7 @@ static void transmitResponse(const msg::Msg& response) {
   /* Encode message */
   buffer[0U] = static_cast<uint8_t>(response.request);
   buffer[1U] = static_cast<uint8_t>(response.request >> 8U);
-  buffer[2U] = static_cast<uint8_t>(response.response);
+  buffer[2U] = static_cast<uint8_t>(response.result);
   buffer[3U] = response.packet_id;
 
   buffer[4U] = response.data.at(0);
