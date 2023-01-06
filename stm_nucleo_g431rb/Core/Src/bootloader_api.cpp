@@ -14,13 +14,10 @@
 
 #include <francor/franklyboot/handler.h>
 
-#include <array>
-
 #include "device_defines.h"
 #include "stm32g4xx.h"
 
 using namespace franklyboot;
-
 // Defines ------------------------------------------------------------------------------------------------------------
 
 constexpr uint32_t MSG_TIMEOUT_CNT = {16000U / 2U};
