@@ -91,11 +91,12 @@ static void transmitResponse(const msg::Msg& response) {
   /* Transmit message */
   for (uint32_t buffer_idx = 0U; buffer_idx < buffer.size(); buffer_idx++) {
     uint8_t tx_not_ready = ((LPUART1->ISR & USART_ISR_TXE) == USART_ISR_TXE);
+
+    LPUART1->TDR = buffer.at(buffer_idx);
+
     do {
       tx_not_ready = !((LPUART1->ISR & USART_ISR_TXE) == USART_ISR_TXE);
     } while (tx_not_ready);
-
-    LPUART1->TDR = buffer.at(buffer_idx);
   }
 }
 
@@ -148,22 +149,106 @@ uint32_t hwi::calculateCRC(uint32_t src_address, uint32_t num_bytes) {
 }
 
 bool hwi::eraseFlashPage(uint32_t page_id) {
-  (void)page_id;
-  return false;
+  // Unlock flash
+  FLASH->KEYR = 0x45670123U;
+  FLASH->KEYR = 0xCDEF89ABU;
+
+  uint32_t tmp_reg_value = FLASH->CR;
+  tmp_reg_value |= FLASH_CR_PER;                   // Enable page erase mode
+  tmp_reg_value &= ~(FLASH_CR_PNB_Msk);            // Clear old page idx
+  tmp_reg_value |= (page_id << FLASH_CR_PNB_Pos);  // Setup page idx
+  FLASH->CR = tmp_reg_value;
+
+  // Start erase page
+  FLASH->CR = FLASH->CR | FLASH_CR_STRT;
+
+  // Wait for erase to finish
+  bool in_progress = true;
+  while (in_progress) {
+    in_progress = ((FLASH->SR & FLASH_SR_BSY) == FLASH_SR_BSY);
+  }
+
+  // Clear page erase mode
+  FLASH->CR &= ~FLASH_CR_PER;
+
+  // Lock flash
+  FLASH->CR |= FLASH_CR_LOCK;
+
+  return true;
 }
 
 bool hwi::writeDataBufferToFlash(uint32_t dst_address, uint32_t dst_page_id, uint8_t* src_data_ptr,
                                  uint32_t num_bytes) {
-  (void)dst_address;
-  (void)dst_page_id;
-  (void)src_data_ptr;
-  (void)num_bytes;
+  // Check if data size is correct
+  bool data_size_valid = ((num_bytes % 8) == 0);
+
+  if (data_size_valid) {
+    // Unlock flash
+    FLASH->KEYR = 0x45670123U;
+    FLASH->KEYR = 0xCDEF89ABU;
+
+    // Enable programming
+    FLASH->CR |= FLASH_CR_PG;
+
+    // Write data
+    uint32_t* dst_word_ptr = (uint32_t*)(dst_address);
+    const uint32_t* dst_word_max_ptr = (uint32_t*)(dst_address + num_bytes);
+    uint32_t* src_data_word_ptr = (uint32_t*)(src_data_ptr);
+
+    while (dst_word_ptr < dst_word_max_ptr) {
+      // Write word to flash
+      *(dst_word_ptr) = *(src_data_word_ptr);
+
+      // Wait until finished
+      bool in_progress = true;
+      while (in_progress) {
+        in_progress = ((FLASH->SR & FLASH_SR_BSY) == FLASH_SR_BSY);
+      }
+
+      // Increase pointer
+      dst_word_ptr++;
+      src_data_word_ptr++;
+    }
+
+    // LOCK FLASH
+    uint32_t tmp_reg_value = FLASH->CR;
+    tmp_reg_value &= ~FLASH_CR_PG;
+    tmp_reg_value |= FLASH_CR_LOCK;
+    FLASH->CR = tmp_reg_value;
+
+    return true;
+  }
+
   return false;
 }
 
 [[nodiscard]] uint8_t franklyboot::hwi::readByteFromFlash(uint32_t flash_src_address) {
-  (void)flash_src_address;
-  return 0U;
+  uint8_t* flash_src_ptr = (uint8_t*)(flash_src_address);
+  return *(flash_src_ptr);
 }
 
-void franklyboot::hwi::startApp(uint32_t app_flash_address) { (void)app_flash_address; }
+void franklyboot::hwi::startApp(uint32_t app_flash_address) {  // Disable interrupts
+  __disable_irq();
+
+  // Clear pending interrupts
+  NVIC->ICPR[0] = 0xFFFFFFFFu;
+
+  // Get application address
+  void (*App)(void) = (void (*)(void))(*((uint32_t*)(app_flash_address + 4u)));
+
+  // Disable SysTick
+  SysTick->CTRL = 0;
+  SCB->ICSR |= SCB_ICSR_PENDSTCLR_Msk;
+
+  // Set Main Stack Pointer
+  __set_MSP(*(uint32_t*)app_flash_address);
+
+  // Load Vector Table Offset
+  SCB->VTOR = app_flash_address;
+
+  // Boot into application
+  __enable_irq();
+
+  // Jump to app
+  App();
+}

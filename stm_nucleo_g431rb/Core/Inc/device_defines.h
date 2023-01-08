@@ -25,7 +25,7 @@ constexpr uint32_t PRODUCT_ID = {0x00000001U};
 constexpr uint32_t PRODUCTION_DATE = {0x00000001U};
 
 constexpr uint32_t FLASH_START_ADDR = {0x08000000U};
-constexpr uint32_t FLASH_APP_FIRST_PAGE = {2U};
+constexpr uint32_t FLASH_APP_FIRST_PAGE = {8U};
 constexpr uint32_t FLASH_SIZE = {128 * 1024U};
 constexpr uint32_t FLASH_PAGE_SIZE = {2048U};
 };  // namespace device

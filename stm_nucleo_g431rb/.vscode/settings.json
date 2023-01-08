@@ -4,5 +4,10 @@
     ],
     "C_Cpp.clang_format_path": "/usr/bin/clang-format",
     "editor.defaultFormatter": "xaver.clang-format",
-    "editor.formatOnSave": true,    
+    "editor.formatOnSave": true,
+    "cortex-debug.variableUseNaturalFormat": false,
+    "files.associations": {
+        "*.tpp": "cpp"
+    },
+    
 }
