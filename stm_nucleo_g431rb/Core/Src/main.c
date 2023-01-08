@@ -18,14 +18,18 @@
 /** \brief Init core and sys clocks */
 static void initCore(void);
 
-/** \breif Init CRC unit */
+/** \brief Init CRC unit */
 static void initCRC(void);
+
+/** \brief Init Systick ISR */
+static void initSysTick(void);
 
 // Public Functions ---------------------------------------------------------------------------------------------------
 
 void SystemInit(void) {
   initCore();
   initCRC();
+  initSysTick();
   FRANKLYBOOT_Init();
 }
 
@@ -33,6 +37,10 @@ int main(void) {
   FRANKLYBOOT_Run();
   return 0;
 }
+
+void SysTick_Handler(void) { FRANKLYBOOT_autoStartISR(); }
+
+// Private Functions --------------------------------------------------------------------------------------------------
 
 static void initCore(void) {
   // Enable HSI16 clock
@@ -75,4 +83,23 @@ static void initCRC(void) {
 
   // Set data output inversion
   MODIFY_REG(CRC->CR, CRC_CR_REV_OUT, CRC_CR_REV_OUT);
+}
+
+static void initSysTick(void) {
+  // Sys tick is configured to 1 sec.
+  // After 1 sec and ISR is called and if a valid app is found
+  // the application is started. If the bootloader gets an ping the
+  // autostart is canceled.
+  // The sys tick is not used as normal timer in this case!
+
+  // Set reload value
+  const uint32_t tick_value = FRANKLYBOOT_getDevSysTickHz() - 1;
+  SysTick->LOAD = tick_value;
+  SysTick->VAL = tick_value;
+
+  // Set priority
+  NVIC_SetPriority(SysTick_IRQn, 0);
+
+  // Enable SysTick
+  SysTick->CTRL = SysTick_CTRL_CLKSOURCE_Msk | SysTick_CTRL_TICKINT_Msk | SysTick_CTRL_ENABLE_Msk;
 }

@@ -20,6 +20,8 @@
 
 namespace device {
 
+constexpr uint32_t SYS_TICK = {16000000U};
+
 constexpr uint32_t VENDOR_ID = {0xDEADBEEFU};
 constexpr uint32_t PRODUCT_ID = {0x00000001U};
 constexpr uint32_t PRODUCTION_DATE = {0x00000001U};
@@ -28,6 +30,7 @@ constexpr uint32_t FLASH_START_ADDR = {0x08000000U};
 constexpr uint32_t FLASH_APP_FIRST_PAGE = {8U};
 constexpr uint32_t FLASH_SIZE = {128 * 1024U};
 constexpr uint32_t FLASH_PAGE_SIZE = {2048U};
+constexpr uint32_t FLASH_APP_START_ADDR = FLASH_START_ADDR + FLASH_APP_FIRST_PAGE * FLASH_PAGE_SIZE;
 };  // namespace device
 
 #endif /* __cplusplus */

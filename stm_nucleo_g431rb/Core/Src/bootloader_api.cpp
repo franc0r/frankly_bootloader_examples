@@ -20,12 +20,26 @@
 using namespace franklyboot;
 // Defines ------------------------------------------------------------------------------------------------------------
 
-constexpr uint32_t MSG_TIMEOUT_CNT = {16000U / 2U};
+constexpr uint32_t MSG_TIMEOUT_CNT = {device::SYS_TICK / 2000U};
 constexpr uint32_t MSG_SIZE = {8U};
 
 // Private Variables --------------------------------------------------------------------------------------------------
+static volatile bool autostart_possible = {false};
+static volatile bool req_autostart = {false};
 
 // Private Function Prototypes ----------------------------------------------------------------------------------------
+
+/**
+ * @brief Checks if autostart shall be aborted by ping message request
+ */
+static void checkAutoStartAbort(msg::Msg& request) {
+  if (autostart_possible) {
+    /* Abort autostart if a ping for the bootloader was received */
+    if (request.request == msg::REQ_PING || request.request == msg::REQ_DEV_INFO_BOOTLOADER_VERSION) {
+      autostart_possible = false;
+    }
+  }
+}
 
 /**
  * @brief Block until message is received from serial line
@@ -36,25 +50,31 @@ static void waitForMessage(msg::Msg& request) {
   uint32_t timeout_cnt = 0U;
 
   for (;;) {
-    const uint8_t rx_new_byte = ((LPUART1->ISR & USART_ISR_RXNE) == USART_ISR_RXNE);
-    if (rx_new_byte) {
-      buffer[buffer_idx] = LPUART1->RDR;
-      buffer_idx++;
-
-      if (buffer_idx >= buffer.size()) {
-        break;
-      }
-
-      timeout_cnt = 0U;
+    // Check for autostart override
+    if (req_autostart) {
+      hwi::startApp(device::FLASH_APP_START_ADDR);
     } else {
-      // Check if new message has started
-      // If new byte is not received within a timeout cnt
-      // the message is ignored
-      if (buffer_idx != 0) {
-        timeout_cnt++;
+      // Otherwise wait for data
+      const uint8_t rx_new_byte = ((LPUART1->ISR & USART_ISR_RXNE) == USART_ISR_RXNE);
+      if (rx_new_byte) {
+        buffer[buffer_idx] = LPUART1->RDR;
+        buffer_idx++;
 
-        if (timeout_cnt >= MSG_TIMEOUT_CNT) {
-          buffer_idx = 0U;
+        if (buffer_idx >= buffer.size()) {
+          break;
+        }
+
+        timeout_cnt = 0U;
+      } else {
+        // Check if new message has started
+        // If new byte is not received within a timeout cnt
+        // the message is ignored
+        if (buffer_idx != 0) {
+          timeout_cnt++;
+
+          if (timeout_cnt >= MSG_TIMEOUT_CNT) {
+            buffer_idx = 0U;
+          }
         }
       }
     }
@@ -108,13 +128,28 @@ extern "C" void FRANKLYBOOT_Run(void) {
   Handler<device::FLASH_START_ADDR, device::FLASH_APP_FIRST_PAGE, device::FLASH_SIZE, device::FLASH_PAGE_SIZE>
       hBootloader;
 
+  // Autostart is possible if a valid app in flash is available
+  autostart_possible = hBootloader.isAppValid();
+
+  // TODO init sys tick in main.c!
+
   for (;;) {
     msg::Msg request;
     hBootloader.processBufferedCmds();
     waitForMessage(request);
+    checkAutoStartAbort(request);
     hBootloader.processRequest(request);
     const auto response = hBootloader.getResponse();
     transmitResponse(response);
+  }
+}
+
+extern "C" uint32_t FRANKLYBOOT_getDevSysTickHz(void) { return device::SYS_TICK; }
+
+extern "C" void FRANKLYBOOT_autoStartISR(void) {
+  /* Start app if possible */
+  if (autostart_possible) {
+    req_autostart = true;
   }
 }
 

@@ -12,6 +12,7 @@
 #define BOOTLOADER_API_H_
 
 // Includes -----------------------------------------------------------------------------------------------------------
+#include <stdint.h>
 
 // Public Functions ---------------------------------------------------------------------------------------------------
 
@@ -28,6 +29,16 @@ void FRANKLYBOOT_Init(void);
  * @brief Runs the bootloader API (function is not exiting)
  */
 void FRANKLYBOOT_Run(void);
+
+/**
+ * @brief Returns the system tick frequency in Hz
+ */
+uint32_t FRANKLYBOOT_getDevSysTickHz(void);
+
+/**
+ * @brief Called by sys tick timeout to autostart the app if possible
+ */
+void FRANKLYBOOT_autoStartISR(void);
 
 #ifdef __cplusplus
 };

@@ -7,7 +7,8 @@
     "editor.formatOnSave": true,
     "cortex-debug.variableUseNaturalFormat": false,
     "files.associations": {
-        "*.tpp": "cpp"
+        "*.tpp": "cpp",
+        "array": "cpp"
     },
     
 }
