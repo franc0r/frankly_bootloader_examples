@@ -1,8 +1,9 @@
 # Setup Compiler --------------------------------------------------------------
 
-CC   := arm-none-eabi-gcc
-CXX  := arm-none-eabi-g++
-SIZE := arm-none-eabi-size
+CC      := arm-none-eabi-gcc
+CXX     := arm-none-eabi-g++
+SIZE    := arm-none-eabi-size
+OBJCOPY := arm-none-eabi-objcopy
 
 # Config Compiler -------------------------------------------------------------
 

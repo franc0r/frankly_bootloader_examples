@@ -56,8 +56,10 @@ static void initCore(void) {
   RCC->CFGR = RCC->CFGR | RCC_CFGR_SW_HSI;
 
   // Enable Clocks
+  RCC->BDCR |= RCC_BDCR_RTCEN;
   RCC->AHB1ENR = RCC_AHB1ENR_FLASHEN | RCC_AHB1ENR_CRCEN;
   RCC->AHB2ENR = RCC_AHB2ENR_GPIOAEN;
+  RCC->APB1ENR1 |= RCC_APB1ENR1_RTCAPBEN | RCC_APB1ENR1_PWREN;
   RCC->APB1ENR2 |= RCC_APB1ENR2_LPUART1EN;
 
   // Config GPIOs for UART Pin PA2 & PA3
@@ -75,6 +77,11 @@ static void initCore(void) {
   // Setup UART
   WRITE_REG(LPUART1->BRR, 0x8AE4);
   WRITE_REG(LPUART1->CR1, 0xD);
+
+  // Enable RTC for backup register access
+  // Used for autostart overwrite
+  PWR->CR1 |= PWR_CR1_DBP;
+  __NOP();
 }
 
 static void initCRC(void) {

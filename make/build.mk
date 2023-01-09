@@ -16,7 +16,7 @@ OBJS := $(SRCS_FILES:%=$(BUILD_DIR)/%.o)
 
 # Build -----------------------------------------------------------------------
 
-all: pre-info $(BUILD_DIR)/$(PROJECT_NAME) size
+all: pre-info $(BUILD_DIR)/$(PROJECT_NAME) size objcopy
 	@echo ""
 	@echo "==> Done"
 
@@ -28,7 +28,7 @@ pre-info:
 # Final build step: Link all object files together
 $(BUILD_DIR)/$(PROJECT_NAME): $(OBJS)
 	@echo "[LD ]: Linking $(notdir $@)"
-	@$(CXX) $(subst ../,,$(OBJS)) -o $@ $(LDFLAGS)
+	@$(CXX) $(subst ../,,$(OBJS)) -o $@.elf $(LDFLAGS)
 
 # Create objects from ASM
 $(BUILD_DIR)/%.S.o: %.S
@@ -60,5 +60,17 @@ clean:
 size:
 	@echo ""
 	@echo "--------------------------------------------------------------------"
-	@$(SIZE) $(BUILD_DIR)/$(PROJECT_NAME)
+	@$(SIZE) $(BUILD_DIR)/$(PROJECT_NAME).elf
+	@echo "--------------------------------------------------------------------"
+
+.PHONY: objcopy
+objcopy:
+	@echo ""
+	@echo "--------------------------------------------------------------------"
+	@echo "Converting to hex and binary format"
+	@echo "--------------------------------------------------------------------"
+	@echo "$(PROJECT_NAME).elf => $(PROJECT_NAME).hex"
+	@$(OBJCOPY) -O ihex $(BUILD_DIR)/$(PROJECT_NAME).elf $(BUILD_DIR)/$(PROJECT_NAME).hex
+	@echo "$(PROJECT_NAME).elf => $(PROJECT_NAME).bin"
+	@$(OBJCOPY) -O binary $(BUILD_DIR)/$(PROJECT_NAME).elf $(BUILD_DIR)/$(PROJECT_NAME).bin
 	@echo "--------------------------------------------------------------------"

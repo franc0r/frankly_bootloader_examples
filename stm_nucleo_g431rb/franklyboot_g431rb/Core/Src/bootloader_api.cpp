@@ -20,6 +20,7 @@
 using namespace franklyboot;
 // Defines ------------------------------------------------------------------------------------------------------------
 
+constexpr uint32_t AUTOBOOT_DISABLE_OVERRIDE_KEY = {0xDEADBEEFU};
 constexpr uint32_t MSG_TIMEOUT_CNT = {device::SYS_TICK / 2000U};
 constexpr uint32_t MSG_SIZE = {8U};
 
@@ -128,8 +129,12 @@ extern "C" void FRANKLYBOOT_Run(void) {
   Handler<device::FLASH_START_ADDR, device::FLASH_APP_FIRST_PAGE, device::FLASH_SIZE, device::FLASH_PAGE_SIZE>
       hBootloader;
 
+  // Check if autostart shall be disabled by app firmware via backup register
+  const bool autostart_disable = (TAMP->BKP0R == AUTOBOOT_DISABLE_OVERRIDE_KEY);
+  TAMP->BKP0R = 0;  // Reset backup register
+
   // Autostart is possible if a valid app in flash is available
-  autostart_possible = hBootloader.isAppValid();
+  autostart_possible = hBootloader.isAppValid() && !autostart_disable;
 
   // TODO init sys tick in main.c!
 
