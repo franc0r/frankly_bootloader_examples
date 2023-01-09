@@ -62,7 +62,7 @@ CXX_VER		:= -std=gnu++17
 
 # Configuration ---------------------------------------------------------------
 
-include ../../make/toolchain.mk
+include ../../../make/toolchain.mk
 
 # Core configuration
 FLAGS_CORE := -mcpu=cortex-m4					   # Setup Core to M4
@@ -73,4 +73,4 @@ FLAGS_CORE += -mfpu=fpv4-sp-d16 -mfloat-abi=hard   # FPU Present
 FLAGS_OPTIM := -Og -g
 
 # Include build area
-include ../../make/build.mk
+include ../../../make/build.mk
