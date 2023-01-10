@@ -17,9 +17,17 @@ jobs:
           mkdir -p ../frankly-bootloader
           git clone https://github.com/franc0r/frankly-bootloader.git ../frankly-bootloader
           (cd ../frankly-bootloader && git checkout devel)
-      - name: Build STM NUCLEO-G491RB Example
+      - name: Build STM NUCLEO-G491RB Bootloader Example
         run: |
-          cd stm_nucleo_g431rb
+          cd boards/stm_nucleo_g431rb/franklyboot_g431rb
+          make
+      - name: Build STM NUCLEO-G491RB App Example
+        run: |
+          cd boards/stm_nucleo_g431rb/example_app_g431rb
+          make
+      - name: Build EDUART L431KB CAN Bootloader Example
+        run: |
+          cd eduart_l431kb_can/franklyboot_eduart_l431kb
           make
 #      - uses: actions/checkout@v3
 #      - name: Build STM NUCLEO_G491RB Example
