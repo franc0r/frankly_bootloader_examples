@@ -27,7 +27,7 @@ jobs:
           make
       - name: Build EDUART L431KB CAN Bootloader Example
         run: |
-          cd eduart_l431kb_can/franklyboot_eduart_l431kb
+          cd boards/eduart_l431kb_can/franklyboot_eduart_l431kb
           make
 #      - uses: actions/checkout@v3
 #      - name: Build STM NUCLEO_G491RB Example
