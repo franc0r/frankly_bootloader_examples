@@ -3,7 +3,7 @@
 #
 # 
 
-PROJECT_NAME := franklyboot_nucleo_g4931rb
+PROJECT_NAME := franklyboot_nucleo_g431rb
 
 # Paths -----------------------------------------------------------------------
 

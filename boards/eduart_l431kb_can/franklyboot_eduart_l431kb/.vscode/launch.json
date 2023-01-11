@@ -18,10 +18,10 @@
             "device": "STM32L431KBU6",
             "configFiles": [
                 "interface/stlink-v2-1.cfg",
-                "target/stm32g4x.cfg"
+                "target/stm32l4x.cfg"
             ],
             "svdFile": "${workspaceRoot}/.vscode/STM32L4x1.svd",
-            "showDevDebugOutput" : "false",
+            "showDevDebugOutput" : "parsed",
         }
     ]
 }

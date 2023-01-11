@@ -14,14 +14,14 @@
             "cwd": "${workspaceRoot}",
             "preLaunchTask": "Build",
             "runToEntryPoint": "SystemInit",
-            "executable": "./build/franklyboot_nucleo_g4931rb",
+            "executable": "./build/example_app_f431rb.elf",
             "device": "STM32G431RBT6",
             "configFiles": [
                 "interface/stlink-v2-1.cfg",
                 "target/stm32g4x.cfg"
             ],
             "svdFile": "${workspaceRoot}/.vscode/STM32G431xx.svd",
-            "showDevDebugOutput" : "raw",
+            "showDevDebugOutput" : "parsed",
         }
     ]
 }
