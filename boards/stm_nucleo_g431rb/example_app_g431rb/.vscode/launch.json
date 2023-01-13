@@ -14,7 +14,7 @@
             "cwd": "${workspaceRoot}",
             "preLaunchTask": "Build",
             "runToEntryPoint": "SystemInit",
-            "executable": "./build/example_app_f431rb.elf",
+            "executable": "./build/example_app_g431rb.elf",
             "device": "STM32G431RBT6",
             "configFiles": [
                 "interface/stlink-v2-1.cfg",
