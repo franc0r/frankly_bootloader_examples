@@ -153,7 +153,18 @@ void hwi::resetDevice() { NVIC_SystemReset(); }
 
 [[nodiscard]] uint32_t hwi::getProductionDate() { return device::PRODUCTION_DATE; }
 
-[[nodiscard]] uint32_t hwi::getUniqueID() { return 0U; }
+[[nodiscard]] uint32_t hwi::getUniqueIDWord(const uint32_t idx) {
+  uint32_t* device_uid_ptr = (uint32_t*)(UID_BASE);
+
+  uint32_t uid_value;
+  if (idx < 3U) {
+    uid_value = device_uid_ptr[idx];
+  } else {
+    uid_value = 0U;
+  }
+
+  return uid_value;
+}
 
 uint32_t hwi::calculateCRC(uint32_t src_address, uint32_t num_bytes) {
   // Reset CRC calculation
