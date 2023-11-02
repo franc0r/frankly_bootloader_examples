@@ -70,7 +70,7 @@ FLAGS_CORE += -mthumb							   # Instruction set THUMB
 FLAGS_CORE += -mfpu=fpv4-sp-d16 -mfloat-abi=hard   # FPU Present
 
 # Optimization level
-FLAGS_OPTIM := -Og -g
+FLAGS_OPTIM := -Og -ggdb
 
 # Include build area
 include ../../../make/build.mk

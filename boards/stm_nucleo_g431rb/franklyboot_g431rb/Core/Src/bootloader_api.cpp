@@ -18,8 +18,29 @@
 #include "stm32g4xx.h"
 
 using namespace franklyboot;
-// Defines ------------------------------------------------------------------------------------------------------------
 
+// Device identification ----------------------------------------------------------------------------------------------
+
+/**
+ * Device identification index
+ */
+enum DeviceIdentIdx {
+  DEV_IDENT_VENDOR_ID = 0U,
+  DEV_IDENT_PRODUCT_ID = 1U,
+  DEV_IDENT_PRODUCTION_DATE = 2U,
+};
+
+/*
+ * This array contains the device identification information, which is stored in a extra section in the flash
+ * memory. The default value is 0xFFFFFFFFU for uninitialized flash.
+ * The data is written during the flash process.
+ */
+#pragma pack(push, 1)
+volatile uint32_t __DEVICE_IDENT__[4U]
+    __attribute__((section("._dev_ident"))) = {0xFFFFFFFFU, 0xFFFFFFFFU, 0xFFFFFFFFU, 0xFFFFFFFFU};
+#pragma pack(pop)
+
+// Defines ------------------------------------------------------------------------------------------------------------
 constexpr uint32_t AUTOBOOT_DISABLE_OVERRIDE_KEY = {0xDEADBEEFU};
 constexpr uint32_t MSG_TIMEOUT_CNT = {device::SYS_TICK / 2000U};
 constexpr uint32_t MSG_SIZE = {8U};
@@ -162,11 +183,11 @@ extern "C" void FRANKLYBOOT_autoStartISR(void) {
 
 void hwi::resetDevice() { NVIC_SystemReset(); }
 
-[[nodiscard]] uint32_t hwi::getVendorID() { return device::VENDOR_ID; }
+[[nodiscard]] uint32_t hwi::getVendorID() { return __DEVICE_IDENT__[DEV_IDENT_VENDOR_ID]; }
 
-[[nodiscard]] uint32_t hwi::getProductID() { return device::PRODUCT_ID; }
+[[nodiscard]] uint32_t hwi::getProductID() { return __DEVICE_IDENT__[DEV_IDENT_PRODUCT_ID]; }
 
-[[nodiscard]] uint32_t hwi::getProductionDate() { return device::PRODUCTION_DATE; }
+[[nodiscard]] uint32_t hwi::getProductionDate() { return __DEVICE_IDENT__[DEV_IDENT_PRODUCTION_DATE]; }
 
 [[nodiscard]] uint32_t hwi::getUniqueIDWord(const uint32_t idx) {
   uint32_t* device_uid_ptr = (uint32_t*)(UID_BASE);

@@ -44,8 +44,9 @@ _Min_Stack_Size = 0x400; /* required amount of stack */
 /* Memories definition */
 MEMORY
 {
-  RAM    (rw)     : ORIGIN = 0x20000000,   LENGTH = 32K
-  FLASH    (rx)    : ORIGIN = 0x8000000,   LENGTH = 8K
+  RAM       (rw) : ORIGIN = 0x20000000,   LENGTH = 32K
+  FLASH     (rx) : ORIGIN = 0x8000000,    LENGTH = 8K-128
+  DEV_IDENT (r)  : ORIGIN = 0x8001F80,    LENGTH = 128
 }
 
 /* Sections */
@@ -172,6 +173,14 @@ SECTIONS
     . = . + _Min_Stack_Size;
     . = ALIGN(8);
   } >RAM
+
+  /* Device identification */
+  ._dev_ident :
+  {
+    . = ALIGN(4);
+    KEEP(*(._dev_ident))
+    . = ALIGN(4);
+  } >DEV_IDENT
 
   /* Remove information from the compiler libraries */
   /DISCARD/ :

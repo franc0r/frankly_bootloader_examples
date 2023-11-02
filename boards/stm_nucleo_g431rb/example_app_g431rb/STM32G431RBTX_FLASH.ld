@@ -47,7 +47,8 @@ MEMORY
   RAM    (xrw)    : ORIGIN = 0x20000000,   LENGTH = 32K
   
   /* Modified FLASH area - App starts with 16 kB offset */
-  FLASH    (rx)    : ORIGIN = 0x8002000,   LENGTH = 120K
+  FLASH    (rx)    : ORIGIN = 0x8002000,   LENGTH = 120K - 4
+  CRC      (r)     : ORIGIN = 0x8020000 - 4, LENGTH = 4
 }
 
 /* Sections */
@@ -174,6 +175,13 @@ SECTIONS
     . = . + _Min_Stack_Size;
     . = ALIGN(8);
   } >RAM
+
+  ._app_crc :
+  {
+    . = ALIGN(4);
+    KEEP(*(._app_crc))
+    . = ALIGN(4);
+  } >CRC
 
   /* Remove information from the compiler libraries */
   /DISCARD/ :
