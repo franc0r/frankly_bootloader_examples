@@ -1,0 +1,27 @@
+{
+    /* 
+     * Requires the Rust Language Server (rust-analyzer) and Cortex-Debug extensions
+     * https://marketplace.visualstudio.com/items?itemName=rust-lang.rust-analyzer
+     * https://marketplace.visualstudio.com/items?itemName=marus25.cortex-debug
+     */
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "cortex-debug",
+            "request": "launch",
+            "name": "Debug (OpenOCD)",
+            "servertype": "stlink",
+            "cwd": "${workspaceRoot}",
+            "preLaunchTask": "Build",
+            "runToEntryPoint": "SystemInit",
+            "executable": "./build/franklyboot_nucleo_f303k8.elf",
+            "device": "STM32F303K8",
+            "configFiles": [
+                "interface/stlink-v2-1.cfg",
+                "target/stm32f3x.cfg"
+            ],
+            "svdFile": "${workspaceRoot}/.vscode/STM32G431xx.svd",
+            "showDevDebugOutput" : "parsed",
+        }
+    ]
+}
