@@ -13,8 +13,8 @@
             "servertype": "stlink",
             "cwd": "${workspaceRoot}",
             "preLaunchTask": "Build",
-            "runToEntryPoint": "SystemInit",
-            "executable": "./build/franklyboot_nucleo_f303k8.elf",
+            "runToEntryPoint": "main",
+            "executable": "./build/example_app_f303k8.elf",
             "device": "STM32F303K8",
             "configFiles": [
                 "interface/stlink-v2-1.cfg",
@@ -22,6 +22,10 @@
             ],
             "svdFile": "${workspaceRoot}/.vscode/STM32F3x8.svd",
             "showDevDebugOutput" : "parsed",
+            "postLaunchCommands": [
+                "set *(0xE000ED08) = 0x08002000",
+                "set $pc = *(0x08002004)"
+            ]
         }
     ]
 }

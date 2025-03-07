@@ -226,12 +226,12 @@ bool hwi::eraseFlashPage(uint32_t page_id) {
   FLASH->KEYR = 0x45670123U;
   FLASH->KEYR = 0xCDEF89ABU;
 
+  // Enable page erase mode
+  SET_BIT(FLASH->CR, FLASH_CR_PER);
+
   // Write page to erase
   uint32_t tmp_reg_value = device::FLASH_START_ADDR + (page_id * device::FLASH_PAGE_SIZE);
   WRITE_REG(FLASH->AR, tmp_reg_value);
-
-  // Enable page erase mode
-  SET_BIT(FLASH->CR, FLASH_CR_PER);               // Start erase page
 
   // Start erase page
   SET_BIT(FLASH->CR, FLASH_CR_STRT);
@@ -265,9 +265,10 @@ bool hwi::writeDataBufferToFlash(uint32_t dst_address, uint32_t dst_page_id, uin
     FLASH->CR |= FLASH_CR_PG;
 
     // Write data
-    uint32_t* dst_word_ptr = (uint32_t*)(dst_address);
-    const uint32_t* dst_word_max_ptr = (uint32_t*)(dst_address + num_bytes);
-    uint32_t* src_data_word_ptr = (uint32_t*)(src_data_ptr);
+    // Only 16-bit can be written at once
+    uint16_t* dst_word_ptr = (uint16_t*)(dst_address);
+    const uint16_t* dst_word_max_ptr = (uint16_t*)(dst_address + num_bytes);
+    uint16_t* src_data_word_ptr = (uint16_t*)(src_data_ptr);
 
     while (dst_word_ptr < dst_word_max_ptr) {
       // Write word to flash
