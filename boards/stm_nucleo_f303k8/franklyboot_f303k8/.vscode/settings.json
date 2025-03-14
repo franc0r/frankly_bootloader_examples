@@ -11,5 +11,6 @@
         "array": "cpp"
     },
     "cmake.configureOnOpen": false,
+    "makefile.configureOnOpen": false,
     
 }

@@ -91,14 +91,35 @@ int main(void)
   MX_USART2_UART_Init();
   /* USER CODE BEGIN 2 */
 
+  /* Enable RTC for backup registers */
+  SET_BIT(PWR->CR, PWR_CR_DBP);
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
+  uint32_t ledBlinkCntr = 0U;
+  uint8_t rxData[8U] = {0U};
+
   while (1)
   {
-	  HAL_GPIO_TogglePin(LD3_GPIO_Port, LD3_Pin);
-	  HAL_Delay(100);
+    if(ledBlinkCntr > 500)
+    {
+      ledBlinkCntr = 0U;
+	    HAL_GPIO_TogglePin(LD3_GPIO_Port, LD3_Pin);
+    }
+    else
+    {
+      ledBlinkCntr++;
+    }
+
+    if(HAL_OK == HAL_UART_Receive(&huart2, rxData, 8U, 1U))
+    {
+      /* Reset to bootloader */
+      RTC->BKP0R = 0xDEADBEEFU;
+      NVIC_SystemReset();
+    }
+
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -160,7 +181,7 @@ static void MX_USART2_UART_Init(void)
 
   /* USER CODE END USART2_Init 1 */
   huart2.Instance = USART2;
-  huart2.Init.BaudRate = 38400;
+  huart2.Init.BaudRate = 115200;
   huart2.Init.WordLength = UART_WORDLENGTH_8B;
   huart2.Init.StopBits = UART_STOPBITS_1;
   huart2.Init.Parity = UART_PARITY_NONE;

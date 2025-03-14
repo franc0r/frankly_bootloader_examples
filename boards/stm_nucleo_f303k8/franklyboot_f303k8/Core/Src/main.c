@@ -62,7 +62,9 @@ static void initCore(void) {
   // Setup UART
   WRITE_REG(USART2->BRR, 0x45); // 115200 baud
   SET_BIT(USART2->CR1, USART_CR1_TE | USART_CR1_RE | USART_CR1_UE); // Enable UART
-  
+
+  // Enable RTC for backup registers
+  SET_BIT(PWR->CR, PWR_CR_DBP);
 }
 
 static void initCRC(void) {
