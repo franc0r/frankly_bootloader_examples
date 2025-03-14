@@ -25,6 +25,14 @@ jobs:
         run: |
           cd boards/stm_nucleo_g431rb/example_app_g431rb
           make
+      - name: Build STM NUCLEO-F303K8 Bootloader Example
+        run: |
+          cd boards/stm_nucleo_f303k8/franklyboot_f303k8
+          make
+      - name: Build STM NUCLEO-F303K8 App Example
+        run: |
+          cd boards/stm_nucleo_f303k8/example_app_f303k8
+          make
       - name: Build EDUART L431KB CAN Bootloader Example
         run: |
           cd boards/eduart_l431kb_can/franklyboot_eduart_l431kb
