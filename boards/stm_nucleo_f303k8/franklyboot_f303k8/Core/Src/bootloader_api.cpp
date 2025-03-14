@@ -158,8 +158,6 @@ extern "C" void FRANKLYBOOT_Run(void) {
   // Autostart is possible if a valid app in flash is available
   autostart_possible = hBootloader.isAppValid() && !autostart_disable;
 
-  // TODO init sys tick in main.c!
-
   for (;;) {
     msg::Msg request;
     hBootloader.processBufferedCmds();
@@ -182,7 +180,15 @@ extern "C" void FRANKLYBOOT_autoStartISR(void) {
 
 // Hardware Interface -------------------------------------------------------------------------------------------------
 
-void hwi::resetDevice() { NVIC_SystemReset(); }
+void hwi::resetDevice() { 
+  /* Delay system reset */
+  for(uint32_t idx = 0U; idx < 1000000U; idx++) {
+    __NOP();
+  }
+
+  /* Reset system */
+  NVIC_SystemReset(); 
+}
 
 [[nodiscard]] uint32_t hwi::getVendorID() { return __DEVICE_IDENT__[DEV_IDENT_VENDOR_ID]; }
 

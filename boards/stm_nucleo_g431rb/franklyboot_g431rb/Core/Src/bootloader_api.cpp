@@ -181,7 +181,14 @@ extern "C" void FRANKLYBOOT_autoStartISR(void) {
 
 // Hardware Interface -------------------------------------------------------------------------------------------------
 
-void hwi::resetDevice() { NVIC_SystemReset(); }
+void hwi::resetDevice() { 
+  /* Delay system reset */
+  for(uint32_t idx = 0U; idx < 1000000U; idx++) {
+    __NOP();
+  }
+  
+  NVIC_SystemReset(); 
+}
 
 [[nodiscard]] uint32_t hwi::getVendorID() { return __DEVICE_IDENT__[DEV_IDENT_VENDOR_ID]; }
 
