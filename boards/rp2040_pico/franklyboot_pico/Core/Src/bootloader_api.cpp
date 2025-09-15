@@ -15,28 +15,34 @@
 #include <francor/franklyboot/handler.h>
 
 #include "device_defines.h"
+#include "pico/stdlib.h"
+#include "pico/time.h"
+#include "pico/unique_id.h"
+#include "hardware/gpio.h"
+#include "hardware/flash.h"
+#include "hardware/sync.h"
+#include "hardware/resets.h"
+#include "hardware/watchdog.h"
+#include "pico/bootrom.h"
 
-// ARM CMSIS intrinsics
+// Use Pico SDK equivalents for CMSIS intrinsics
+#include "hardware/sync.h"
+
+// Simple implementations for missing CMSIS functions
 extern "C" {
-  void __disable_irq(void);
-  void __enable_irq(void);
-  void __NOP(void);
-  void __set_MSP(uint32_t topOfMainStack);
+  void __NOP(void) { asm volatile("nop"); }
+  void __disable_irq(void) { __disable_irq(); }  // Use Pico SDK version
+  void __enable_irq(void) { __enable_irq(); }    // Use Pico SDK version
+  void __set_MSP(uint32_t topOfMainStack) {
+    asm volatile("msr msp, %0" : : "r" (topOfMainStack) : "sp");
+  }
 }
 
 using namespace franklyboot;
 
-// RP2040 minimal register definitions -------------------------------------------------------------------------------
-#define USBCTRL_BASE          0x50110000
-#define WATCHDOG_BASE         0x40058000
+// RP2040 flash constants
 #define FLASH_BASE            0x10000000
-
-// USB CDC endpoints and buffers
-#define USB_ENDPOINT_IN       0x81  // EP1 IN
-#define USB_ENDPOINT_OUT      0x01  // EP1 OUT
 #define USB_BUFFER_SIZE       64
-
-#define REG(base, offset) (*(volatile uint32_t*)((base) + (offset)))
 
 // Device identification ----------------------------------------------------------------------------------------------
 
@@ -75,16 +81,37 @@ static void checkAutoStartAbort(msg::Msg& request) {
   }
 }
 
-// Simplified USB CDC receive function (placeholder implementation)
+// USB CDC communication using Pico SDK stdio
+static int buffered_char = -1;
+
 static bool usb_cdc_available(void) {
-  // TODO: Check if USB CDC has data available
-  // For now, return false as placeholder
+  // Check if we have a buffered character
+  if (buffered_char != -1) {
+    return true;
+  }
+
+  // Check if USB CDC has data available using Pico SDK
+  int ch = getchar_timeout_us(0); // Non-blocking read
+  if (ch != PICO_ERROR_TIMEOUT) {
+    buffered_char = ch;
+    return true;
+  }
   return false;
 }
 
 static uint8_t usb_cdc_read(void) {
-  // TODO: Read byte from USB CDC
-  // For now, return dummy data
+  // Check buffered character first
+  if (buffered_char != -1) {
+    uint8_t ch = (uint8_t)buffered_char;
+    buffered_char = -1;
+    return ch;
+  }
+
+  // Read byte from USB CDC using Pico SDK
+  int ch = getchar_timeout_us(1000); // 1ms timeout
+  if (ch != PICO_ERROR_TIMEOUT) {
+    return (uint8_t)ch;
+  }
   return 0;
 }
 
@@ -128,11 +155,10 @@ static void waitForMessage(msg::Msg& request) {
   request.data[3U] = static_cast<uint8_t>(buffer[7U]);
 }
 
-// Simplified USB CDC transmit function (placeholder implementation)
+// USB CDC transmit using Pico SDK stdio
 static void usb_cdc_write(uint8_t data) {
-  // TODO: Write byte to USB CDC
-  // For now, do nothing (placeholder)
-  (void)data;
+  // Write byte to USB CDC using Pico SDK
+  putchar_raw(data);
 }
 
 static void transmitResponse(const msg::Msg& response) {
@@ -174,8 +200,10 @@ static uint32_t software_crc32(const uint8_t* data, uint32_t length) {
 extern "C" void FRANKLYBOOT_Init(void) {}
 
 extern "C" void FRANKLYBOOT_Run(void) {
-  Handler<device::FLASH_START_ADDR, device::FLASH_APP_FIRST_PAGE, device::FLASH_SIZE, device::FLASH_PAGE_SIZE>
+  Handler<device::FLASH_START_ADDR, device::FLASH_APP_FIRST_PAGE, device::FLASH_SIZE, device::BOOTLOADER_FLASH_PAGE_SIZE>
       hBootloader;
+
+  gpio_put(PICO_DEFAULT_LED_PIN, 1); // Turn on LED to show bootloader is running
 
   const bool autostart_disable = (autoboot_disable_flag == AUTOBOOT_DISABLE_OVERRIDE_KEY);
   autoboot_disable_flag = 0;
@@ -204,7 +232,8 @@ extern "C" void FRANKLYBOOT_autoStartISR(void) {
 // Hardware Interface -------------------------------------------------------------------------------------------------
 
 void hwi::resetDevice() {
-  // Simple infinite loop reset
+  // Use Pico SDK watchdog reset
+  watchdog_reboot(0, 0, 0);
   while (true) {
     __NOP();
   }
@@ -217,8 +246,15 @@ void hwi::resetDevice() {
 [[nodiscard]] uint32_t hwi::getProductionDate() { return __DEVICE_IDENT__[DEV_IDENT_PRODUCTION_DATE]; }
 
 [[nodiscard]] uint32_t hwi::getUniqueIDWord(const uint32_t idx) {
-  // TODO: Read from RP2040 unique ID registers
-  return 0x12345678U + idx; // Placeholder
+  // Read from RP2040 unique ID using Pico SDK
+  pico_unique_board_id_t unique_id;
+  pico_get_unique_board_id(&unique_id);
+
+  if (idx < 2) {
+    // Return first 8 bytes as two 32-bit words
+    return ((uint32_t*)unique_id.id)[idx];
+  }
+  return 0;
 }
 
 uint32_t hwi::calculateCRC(uint32_t src_address, uint32_t num_bytes) {
@@ -227,27 +263,49 @@ uint32_t hwi::calculateCRC(uint32_t src_address, uint32_t num_bytes) {
 }
 
 bool hwi::eraseFlashPage(uint32_t page_id) {
-  // TODO: Implement flash erase
-  (void)page_id;
-  return false; // Not implemented yet
+  // Use Pico SDK flash erase (4KB sectors)
+  uint32_t offset = page_id * device::BOOTLOADER_FLASH_PAGE_SIZE;
+
+  // Disable interrupts for flash operation
+  uint32_t ints = save_and_disable_interrupts();
+
+  // Erase 4KB sector
+  flash_range_erase(offset, FLASH_SECTOR_SIZE);
+
+  // Restore interrupts
+  restore_interrupts(ints);
+
+  return true;
 }
 
 bool hwi::writeDataBufferToFlash(uint32_t dst_address, uint32_t dst_page_id, uint8_t* src_data_ptr,
                                  uint32_t num_bytes) {
-  // TODO: Implement flash write
-  (void)dst_address;
-  (void)dst_page_id;
-  (void)src_data_ptr;
-  (void)num_bytes;
-  return false; // Not implemented yet
+  // Use Pico SDK flash programming
+  uint32_t offset = dst_address - FLASH_BASE;
+
+  // Align to page boundary for programming
+  if (offset % device::BOOTLOADER_FLASH_PAGE_SIZE != 0 || num_bytes % device::BOOTLOADER_FLASH_PAGE_SIZE != 0) {
+    return false;
+  }
+
+  // Disable interrupts for flash operation
+  uint32_t ints = save_and_disable_interrupts();
+
+  // Program flash (256-byte pages)
+  flash_range_program(offset, src_data_ptr, num_bytes);
+
+  // Restore interrupts
+  restore_interrupts(ints);
+
+  return true;
 }
 
-[[nodiscard]] uint8_t franklyboot::hwi::readByteFromFlash(uint32_t flash_src_address) {
+[[nodiscard]] uint8_t hwi::readByteFromFlash(uint32_t flash_src_address) {
   uint8_t* flash_src_ptr = (uint8_t*)(flash_src_address);
   return *(flash_src_ptr);
 }
 
-void franklyboot::hwi::startApp(uint32_t app_flash_address) {
+void hwi::startApp(uint32_t app_flash_address) {
   __disable_irq();
 
   // Get application address from vector table
