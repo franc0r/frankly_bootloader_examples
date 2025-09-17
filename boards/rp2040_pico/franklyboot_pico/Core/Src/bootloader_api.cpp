@@ -315,18 +315,57 @@ uint32_t hwi::calculateCRC(uint32_t src_address, uint32_t num_bytes) {
   return software_crc32(data_ptr, num_bytes);
 }
 
+// Flash erase function MUST be in RAM because XIP is disabled during flash operations
+static bool __no_inline_not_in_flash_func(flash_erase_page_internal)(uint32_t offset) {
+  // This function MUST run from RAM because flash operations disable XIP
+  // All interrupts are already disabled by caller
+
+  // Erase one 4KB sector using Pico SDK
+  flash_range_erase(offset, FLASH_SECTOR_SIZE);
+
+  return true;
+}
+
 bool hwi::eraseFlashPage(uint32_t page_id) {
-  // Use Pico SDK flash erase (4KB sectors)
+  // RP2040 flash erase requirements:
+  // - Erase in 4KB sectors (FLASH_SECTOR_SIZE = 4096)
+  // - Address must be 4KB aligned
+  // - Size must be multiple of 4KB
+  // - All interrupts must be disabled during operation
+  // - Function doing actual flash operation must be in RAM
+
   uint32_t offset = page_id * device::BOOTLOADER_FLASH_PAGE_SIZE;
 
-  // Disable interrupts for flash operation
+  // Safety check: don't erase bootloader area (first 64KB)
+  if (offset < (16 * device::BOOTLOADER_FLASH_PAGE_SIZE)) {
+    return false; // Refuse to erase bootloader
+  }
+
+  // Ensure offset is 4KB aligned
+  if (offset % FLASH_SECTOR_SIZE != 0) {
+    return false;
+  }
+
+  // Disable ALL interrupts for flash operation
+  // This is critical for RP2040 flash operations
   uint32_t ints = save_and_disable_interrupts();
 
-  // Erase 4KB sector
-  flash_range_erase(offset, FLASH_SECTOR_SIZE);
+  // Call RAM-resident erase function
+  bool result = flash_erase_page_internal(offset);
 
   // Restore interrupts
   restore_interrupts(ints);
+
+  return result;
+}
+
+// Flash program function MUST be in RAM because XIP is disabled during flash operations
+static bool __no_inline_not_in_flash_func(flash_program_internal)(uint32_t offset, const uint8_t* data, uint32_t num_bytes) {
+  // This function MUST run from RAM because flash operations disable XIP
+  // All interrupts are already disabled by caller
+
+  // Program flash using Pico SDK (256-byte pages)
+  flash_range_program(offset, data, num_bytes);
 
   return true;
 }
@@ -339,6 +378,7 @@ bool hwi::writeDataBufferToFlash(uint32_t dst_address, uint32_t dst_page_id, uin
   // RP2040 flash programming requirements:
   // - Program in 256-byte pages (FLASH_PAGE_SIZE)
   // - Address and size must be 256-byte aligned
+  // - Function doing actual flash operation must be in RAM
   if (offset % FLASH_PAGE_SIZE != 0 || num_bytes % FLASH_PAGE_SIZE != 0) {
     return false;
   }
@@ -346,13 +386,13 @@ bool hwi::writeDataBufferToFlash(uint32_t dst_address, uint32_t dst_page_id, uin
   // Disable interrupts for flash operation
   uint32_t ints = save_and_disable_interrupts();
 
-  // Program flash (256-byte pages)
-  flash_range_program(offset, src_data_ptr, num_bytes);
+  // Call RAM-resident program function
+  bool result = flash_program_internal(offset, src_data_ptr, num_bytes);
 
   // Restore interrupts
   restore_interrupts(ints);
 
-  return true;
+  return result;
 }
 
 [[nodiscard]] uint8_t hwi::readByteFromFlash(uint32_t flash_src_address) {

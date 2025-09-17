@@ -43,7 +43,7 @@ target_link_libraries(${PROJECT_NAME}
 # Create UF2 output
 pico_add_extra_outputs(${PROJECT_NAME})
 
-# Use custom linker script with .dev_ident section for bootflash tool
+# Use original linker script with proper RAM flash functions
 pico_set_linker_script(${PROJECT_NAME} ${CMAKE_CURRENT_SOURCE_DIR}/memmap_pico.ld)
 
 # Use default Boot2 for the Pico board (will automatically choose the right one)
