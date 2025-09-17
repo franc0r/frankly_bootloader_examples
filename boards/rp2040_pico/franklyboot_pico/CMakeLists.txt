@@ -3,6 +3,9 @@ cmake_minimum_required(VERSION 3.13)
 # Set board type before including pico_sdk_import
 set(PICO_BOARD pico)
 
+# Enable compile commands json
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 # Include Pico SDK
 include($ENV{PICO_SDK_PATH}/external/pico_sdk_import.cmake)
 
@@ -40,8 +43,8 @@ target_link_libraries(${PROJECT_NAME}
 # Create UF2 output
 pico_add_extra_outputs(${PROJECT_NAME})
 
-# Use default linker script for now (can customize later for bootloader layout)
-# pico_set_linker_script(${PROJECT_NAME} ${CMAKE_CURRENT_SOURCE_DIR}/memmap_pico.ld)
+# Use custom linker script with .dev_ident section for bootflash tool
+pico_set_linker_script(${PROJECT_NAME} ${CMAKE_CURRENT_SOURCE_DIR}/memmap_pico.ld)
 
 # Use default Boot2 for the Pico board (will automatically choose the right one)
 # pico_set_boot_stage2(${PROJECT_NAME} ${PICO_SDK_PATH}/src/rp2_common/boot_stage2/boot2_w25q080.S)
@@ -51,4 +54,4 @@ pico_enable_stdio_usb(${PROJECT_NAME} 1)
 pico_enable_stdio_uart(${PROJECT_NAME} 0)
 
 # Set optimization for size
-target_compile_options(${PROJECT_NAME} PRIVATE -Os)
+target_compile_options(${PROJECT_NAME} PRIVATE -Os -g)

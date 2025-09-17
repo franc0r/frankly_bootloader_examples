@@ -5,15 +5,12 @@
         "defines": [],
         "cStandard": "c11",
         "cppStandard": "c++17",
-        "compileCommands": "${workspaceFolder}/compile_commands.json",
+        "compileCommands": "${workspaceFolder}/build/compile_commands.json",
         "browse": {
           "path": ["${workspaceFolder}"],
           "limitSymbolsToIncludedHeaders": true,
           "databaseFilename": ""
-        },
-        "includePath": [
-          "${workspaceFolder}/**",
-          "${env:PICO_PATH_SDK}/src/**"]
+        }
       }
     ],
     "version": 4
