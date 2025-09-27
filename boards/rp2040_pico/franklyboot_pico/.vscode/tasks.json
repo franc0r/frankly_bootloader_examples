@@ -1,42 +1,38 @@
 {
-    // See https://code.visualstudio.com/docs/editor/tasks for more information
+    // See https://go.microsoft.com/fwlink/?LinkId=733558
+    // for the documentation about the tasks.json format
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "Create Build Directory",
-            "type": "shell",
-            "command": "mkdir -p build"
-        },
-        {
-            "label": "CMake Configure",
-            "type": "shell",
-            "command": "cmake ..",
-            "options": {
-                "cwd": "${workspaceFolder}/build"
-            },
-            "problemMatcher": [],
+            "label": "Cleanup",
+            "type": "process",
+            "command": "make",
+            "args": ["clean"],
             "group": {
                 "kind": "build",
                 "isDefault": false
-            }
+            },
+            "problemMatcher": [],
         },
         {
             "label": "Build",
-            "type": "shell",
+            "type": "process",
             "command": "make",
-            "options": {
-                "cwd": "${workspaceFolder}/build"
-            },
-            "problemMatcher": [],
+            "problemMatcher": "$gcc",
             "group": {
                 "kind": "build",
-                "isDefault": true
+                "isDefault": false
             },
-            "dependsOn": [
-                "Create Build Directory",
-                "CMake Configure"
-            ],
-            "dependsOrder": "sequence"
+        },
+        {
+            "label": "Create Compile Commands JSON",
+            "type": "process",
+            "command": "compiledb",
+            "args": ["make"],
+            "group": {
+                "kind": "build",
+                "isDefault": false
+            },
         }
     ]
 }
