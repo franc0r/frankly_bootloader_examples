@@ -38,11 +38,21 @@ SECTIONS
     . = ALIGN(4);
   } >FLASH
 
+  .load_func :
+  {
+    . = ALIGN(4);
+    *(.load_func)
+    *(.load_func*)
+    . = ALIGN(4);
+  } >FLASH
+
   /* The program code and other data into "FLASH" Rom type memory */
+  _siram_app  = LOADADDR(.text);
   .text :
   {
     . = ALIGN(4);
-    *(.text)           /* .text sections (code) */
+    _sram_app = .;     /* Define start of RAM application */
+    *(.text)           /* .text sections (code) */   
     *(.text*)          /* .text* sections (code) */
     *(.glue_7)         /* glue arm to thumb code */
     *(.glue_7t)        /* glue thumb to arm code */
@@ -52,8 +62,7 @@ SECTIONS
     KEEP (*(.fini))
 
     . = ALIGN(4);
-    _etext = .;        /* define a global symbols at end of code */
-  } >FLASH
+  } >RAM AT >FLASH
 
   /* Constant data into "FLASH" Rom type memory */
   .rodata :
@@ -62,13 +71,13 @@ SECTIONS
     *(.rodata)         /* .rodata sections (constants, strings, etc.) */
     *(.rodata*)        /* .rodata* sections (constants, strings, etc.) */
     . = ALIGN(4);
-  } >FLASH
+  } >RAM AT >FLASH
 
   .ARM.extab   : {
     . = ALIGN(4);
     *(.ARM.extab* .gnu.linkonce.armextab.*)
     . = ALIGN(4);
-  } >FLASH
+  } >RAM AT >FLASH
 
   .ARM : {
     . = ALIGN(4);
@@ -76,7 +85,7 @@ SECTIONS
     *(.ARM.exidx*)
     __exidx_end = .;
     . = ALIGN(4);
-  } >FLASH
+  } >RAM AT >FLASH
 
   .preinit_array     :
   {
@@ -85,7 +94,7 @@ SECTIONS
     KEEP (*(.preinit_array*))
     PROVIDE_HIDDEN (__preinit_array_end = .);
     . = ALIGN(4);
-  } >FLASH
+  } >RAM AT >FLASH
 
   .init_array :
   {
@@ -95,7 +104,7 @@ SECTIONS
     KEEP (*(.init_array*))
     PROVIDE_HIDDEN (__init_array_end = .);
     . = ALIGN(4);
-  } >FLASH
+  } >RAM AT >FLASH
 
   .fini_array :
   {
@@ -105,7 +114,8 @@ SECTIONS
     KEEP (*(.fini_array*))
     PROVIDE_HIDDEN (__fini_array_end = .);
     . = ALIGN(4);
-  } >FLASH
+    _eram_app = .;     /* Define end of RAM application */
+  } >RAM AT >FLASH
 
   /* Used by the startup to initialize data */
   _sidata = LOADADDR(.data);
