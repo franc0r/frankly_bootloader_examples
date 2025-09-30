@@ -16,6 +16,16 @@
 // Pico onboard LED pin
 #define LED_PIN               PICO_DEFAULT_LED_PIN
 
+/*
+ * This array contains the device identification information, which is stored in a extra section in the flash
+ * memory. The default value is 0xFFFFFFFFU for uninitialized flash.
+ * The data is written during the flash process.
+ */
+#pragma pack(push, 1)
+volatile uint32_t __DEVICE_IDENT__[4U]
+    __attribute__((section("._dev_ident"))) = {0xFFFFFFFFU, 0xFFFFFFFFU, 0xFFFFFFFFU, 0xFFFFFFFFU};
+#pragma pack(pop)
+
 // Private Functions --------------------------------------------------------------------------------------------------
 
 /** \brief Init core hardware */

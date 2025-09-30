@@ -25,3 +25,6 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 # Copy complete app from flash to RAM
 pico_set_binary_type(${PROJECT_NAME} copy_to_ram)
 
+# Use custom linker script
+pico_set_linker_script(${PROJECT_NAME} ${CMAKE_CURRENT_SOURCE_DIR}/rp2040.ld)
+
