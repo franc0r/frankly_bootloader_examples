@@ -5,9 +5,9 @@
     "tasks": [
         {
             "label": "Cleanup",
-            "type": "process",
-            "command": "make",
-            "args": ["clean"],
+            "type": "shell",
+            "command": "rm",
+            "args": ["-rf", "build"],
             "group": {
                 "kind": "build",
                 "isDefault": false
@@ -16,19 +16,9 @@
         },
         {
             "label": "Build",
-            "type": "process",
-            "command": "make",
+            "type": "shell",
+            "command": "mkdir -p build && cd build && cmake .. && make -j 8",
             "problemMatcher": "$gcc",
-            "group": {
-                "kind": "build",
-                "isDefault": false
-            },
-        },
-        {
-            "label": "Create Compile Commands JSON",
-            "type": "process",
-            "command": "compiledb",
-            "args": ["make"],
             "group": {
                 "kind": "build",
                 "isDefault": false
