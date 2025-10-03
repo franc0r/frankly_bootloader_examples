@@ -8,6 +8,49 @@
     "configurations": [
         {
             "type": "cortex-debug",
+            "request": "attach",
+            "name": "Attach to Running Bootloader (Halt)",
+            "servertype": "openocd",
+            "cwd": "${workspaceRoot}",
+            "executable": "./build/franklyboot_pico.elf",
+            "device": "RP2040",
+            "configFiles": [
+                "interface/cmsis-dap.cfg",
+                "target/rp2040.cfg"
+            ],
+            "svdFile": "${env:PICO_SDK_PATH}/src/rp2040/hardware_regs/RP2040.svd",
+            "showDevDebugOutput": "parsed",
+            "overrideAttachCommands": [
+                "monitor halt",
+                "file ./build/franklyboot_pico.elf",
+                "set mem inaccessible-by-default off",
+                "set remotetimeout 60"
+            ]
+        },
+        {
+            "type": "cortex-debug",
+            "request": "attach",
+            "name": "Attach to Running Bootloader (Continue)",
+            "servertype": "openocd",
+            "cwd": "${workspaceRoot}",
+            "executable": "./build/franklyboot_pico.elf",
+            "device": "RP2040",
+            "configFiles": [
+                "interface/cmsis-dap.cfg",
+                "target/rp2040.cfg"
+            ],
+            "svdFile": "${env:PICO_SDK_PATH}/src/rp2040/hardware_regs/RP2040.svd",
+            "showDevDebugOutput": "parsed",
+            "overrideAttachCommands": [
+                "monitor halt",
+                "file ./build/franklyboot_pico.elf",
+                "set mem inaccessible-by-default off",
+                "set remotetimeout 60",
+                "continue"
+            ]
+        },
+        {
+            "type": "cortex-debug",
             "request": "launch",
             "name": "Debug (OpenOCD)",
             "servertype": "openocd",
@@ -22,6 +65,13 @@
             ],
             "svdFile": "${env:PICO_SDK_PATH}/src/rp2040/hardware_regs/RP2040.svd",
             "showDevDebugOutput" : "parsed",
+            "postRestartCommands": [
+                "monitor reset init",
+                "monitor targets rp2040.core0",
+                "monitor halt",
+                "monitor targets rp2040.core1",
+                "monitor halt"
+            ]
         }
     ]
 }

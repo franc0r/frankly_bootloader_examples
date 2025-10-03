@@ -10,26 +10,28 @@
  */
 
 // Includes -----------------------------------------------------------------------------------------------------------
-#include "pico.h"
 #include "pico/stdlib.h"
+#include "pico/multicore.h"
+#include "hardware/watchdog.h"
+#include "bootloader_api.h"
 
 // Pico onboard LED pin
 #define LED_PIN               PICO_DEFAULT_LED_PIN
 
-/*
- * This array contains the device identification information, which is stored in a extra section in the flash
- * memory. The default value is 0xFFFFFFFFU for uninitialized flash.
- * The data is written during the flash process.
- */
-#pragma pack(push, 1)
-volatile uint32_t __DEVICE_IDENT__[4U]
-    __attribute__((section("._dev_ident"))) = {0xFFFFFFFFU, 0xFFFFFFFFU, 0xFFFFFFFFU, 0xFFFFFFFFU};
-#pragma pack(pop)
+// Autostart timeout in milliseconds
+#define AUTOSTART_TIMEOUT_MS  2000U
+
+// Private Variables --------------------------------------------------------------------------------------------------
+static volatile uint32_t tick_counter = 0;
+static volatile bool autostart_triggered = false;
 
 // Private Functions --------------------------------------------------------------------------------------------------
 
 /** \brief Init core hardware */
 static void initCore(void);
+
+/** \brief Timer callback for autostart */
+static bool autostartTimerCallback(struct repeating_timer *t);
 
 // Public Functions ---------------------------------------------------------------------------------------------------
 
@@ -37,32 +39,58 @@ int main(void) {
     // Initialize core hardware
     initCore();
 
-    for(;;) {
-        sleep_ms(500);
-        gpio_put(LED_PIN, 1);
-        sleep_ms(500);
-        gpio_put(LED_PIN, 0);
-    }
+    // Initialize bootloader API
+    FRANKLYBOOT_Init();
 
+    // Set up autostart timer (check every 100ms)
+    struct repeating_timer timer;
+    add_repeating_timer_ms(100, autostartTimerCallback, NULL, &timer);
+
+    // Launch Core1 for USB CDC communication
+    multicore_launch_core1(FRANKLYBOOT_Core1Entry);
+
+    // Run bootloader (this function does not return)
+    FRANKLYBOOT_Run();
+
+    // Should never reach here
     return 0;
 }
 
 // Private Functions --------------------------------------------------------------------------------------------------
 
 static void initCore(void) {
-    // Initialize Pico SDK stdio for USB CDC communication
-    stdio_init_all();
+    // Initialize Pico SDK
+    // Note: We don't call stdio_init_all() here because TinyUSB will be
+    // initialized on Core1 by FRANKLYBOOT_Core1Entry()
+    // The system clock is already set to 125 MHz by the SDK
+
+    // Disable timer debug pause
     timer_hw->dbgpause = 0;
 
-    //multicore_reset_core1();
-
+    // Small delay for system stabilization
     sleep_ms(100);
-
-    // Launch multicore
-    //multicore_launch_core1(core1_entry);
 
     // Initialize LED GPIO for status indication
     gpio_init(LED_PIN);
     gpio_set_dir(LED_PIN, GPIO_OUT);
     gpio_put(LED_PIN, 0); // Start with LED off
+}
+
+static bool autostartTimerCallback(struct repeating_timer *t) {
+    tick_counter += 100;
+
+    // Toggle LED while waiting for autostart timeout
+    if (tick_counter < AUTOSTART_TIMEOUT_MS) {
+        // Fast blink during autostart wait (250ms period)
+        gpio_put(LED_PIN, (tick_counter / 125) % 2);
+    } else if (!autostart_triggered) {
+        autostart_triggered = true;
+        FRANKLYBOOT_autoStartISR();
+    } else {
+        // After autostart check, use bootloader LED control
+        // This handles fast flash during communication and slow blink when idle
+        FRANKLYBOOT_updateLED();
+    }
+
+    return true; // Keep timer running
 }
