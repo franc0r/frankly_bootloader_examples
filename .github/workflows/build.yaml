@@ -16,7 +16,6 @@ jobs:
         run: |
           mkdir -p ../frankly-bootloader
           git clone https://github.com/franc0r/frankly-bootloader.git ../frankly-bootloader
-          (cd ../frankly-bootloader && git checkout devel)
       - name: Build STM NUCLEO-G491RB Bootloader Example
         run: |
           cd boards/stm_nucleo_g431rb/franklyboot_g431rb
@@ -36,6 +35,20 @@ jobs:
       - name: Build EDUART L431KB CAN Bootloader Example
         run: |
           cd boards/eduart_l431kb_can/franklyboot_eduart_l431kb
+          make
+      - name: Build Rpi PiPico (RP2040) Bootloader Example
+        run: |
+          cd boards/rp2040_pico/franklyboot_pico
+          mkdir -p build
+          cd build
+          cmake ..
+          make
+      - name: Build Rpi PiPico (RP2040) App Example
+        run: |
+          cd boards/rp2040_pico/example_app_pico
+          mkdir -p build
+          cd build
+          cmake ..
           make
 #      - uses: actions/checkout@v3
 #      - name: Build STM NUCLEO_G491RB Example

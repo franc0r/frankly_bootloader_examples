@@ -10,7 +10,10 @@
           "path": ["${workspaceFolder}"],
           "limitSymbolsToIncludedHeaders": true,
           "databaseFilename": ""
-        }
+        },
+        "includePath": [
+          "${workspaceFolder}/**",
+          "${env:PICO_PATH_SDK}/src/**"]
       }
     ],
     "version": 4
